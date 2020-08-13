@@ -71,7 +71,8 @@ defmodule Codebattle.Chat.Server do
 
   def handle_cast({:add_msg, user, msg}, state) do
     %{messages: messages} = state
-    new_msgs = [%{user: user, message: msg} | messages]
+
+    new_msgs = [%{user_name: user.name, message: msg} | messages]
     {:noreply, %{state | messages: new_msgs}}
   end
 end

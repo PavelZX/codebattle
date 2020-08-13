@@ -1,14 +1,36 @@
 defmodule Codebattle.Tournament.Server do
   use GenServer
+  alias Codebattle.Tournament.Helpers
 
   # API
   def start_link(tournament) do
     GenServer.start(__MODULE__, tournament, name: server_name(tournament.id))
   end
 
-  def add_msg(id, user, msg) do
-    GenServer.cast(server_name(id), {:add_msg, user, msg})
+  def add_msg(id, username, msg) do
+    GenServer.cast(server_name(id), {:add_msg, username, msg})
   end
+
+  def join_chat(id, user) do
+    try do
+      GenServer.call(server_name(id), {:join_chat, user})
+    catch
+      :exit, _reason ->
+        # TODO: handle errors
+        {:ok, []}
+    end
+  end
+
+  def get_users(id) do
+    try do
+      GenServer.call(server_name(id), :get_users)
+    catch
+      :exit, _reason ->
+        []
+    end
+  end
+
+  def leave_chat(id, _user), do: {:ok, []}
 
   def get_msgs(id) do
     try do
@@ -45,6 +67,14 @@ defmodule Codebattle.Tournament.Server do
   def handle_call(:get_msgs, _from, state) do
     %{messages: messages} = state
     {:reply, Enum.reverse(messages), state}
+  end
+
+  def handle_call(:get_users, _from, state) do
+    {:reply, [], state}
+  end
+
+  def handle_call({:join_chat, _user}, _from, state) do
+    {:reply, {:ok, []}, state}
   end
 
   def handle_call(:get_tournament, _from, state) do
