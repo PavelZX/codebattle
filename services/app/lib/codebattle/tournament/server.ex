@@ -6,13 +6,13 @@ defmodule Codebattle.Tournament.Server do
     GenServer.start(__MODULE__, tournament, name: server_name(tournament.id))
   end
 
-  def add_message(id, user, msg) do
-    GenServer.cast(server_name(id), {:add_message, user, msg})
+  def add_msg(id, user, msg) do
+    GenServer.cast(server_name(id), {:add_msg, user, msg})
   end
 
-  def get_messages(id) do
+  def get_msgs(id) do
     try do
-      GenServer.call(server_name(id), :get_messages)
+      GenServer.call(server_name(id), :get_msgs)
     catch
       :exit, _reason ->
         []
@@ -42,7 +42,7 @@ defmodule Codebattle.Tournament.Server do
     {:ok, %{tournament: tournament, messages: []}}
   end
 
-  def handle_call(:get_messages, _from, state) do
+  def handle_call(:get_msgs, _from, state) do
     %{messages: messages} = state
     {:reply, Enum.reverse(messages), state}
   end
@@ -60,7 +60,7 @@ defmodule Codebattle.Tournament.Server do
     {:noreply, Map.merge(state, %{tournament: new_tournament})}
   end
 
-  def handle_cast({:add_message, user, msg}, state) do
+  def handle_cast({:add_msg, user, msg}, state) do
     %{messages: messages} = state
     new_msgs = [%{user_name: user.name, message: msg} | messages]
     {:noreply, %{state | messages: new_msgs}}

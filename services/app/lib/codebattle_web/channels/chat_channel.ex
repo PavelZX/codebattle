@@ -5,9 +5,23 @@ defmodule CodebattleWeb.ChatChannel do
   require Logger
 
   alias Codebattle.{Chat, UsersActivityServer, GameProcess}
+  alias Codebattle.GameProcess.FsmHelpers
+
+  def get_chat_server(chat_id) do
+    game_id = chat_id
+    {:ok, fsm} = Codebattle.GameProcess.Server.get_fsm(game_id)
+    if FsmHelpers.tournament?(fsm) do
+      Codebattle.Tournament.Server
+    else
+      Chat.Server
+    end
+  end
 
   def join("chat:" <> chat_id, _payload, socket) do
     send(self(), :after_join)
+
+    server = get_chat_server(chat_id)
+    chat =
     {:ok, users} = Chat.Server.join_chat(chat_id, socket.assigns.current_user)
 
     GameProcess.Server.update_playbook(
@@ -19,13 +33,14 @@ defmodule CodebattleWeb.ChatChannel do
       }
     )
 
-    msgs = Chat.Server.get_msgs(chat_id)
+    msgs = server.get_msgs(chat_id)
 
     {:ok, %{users: users, messages: msgs}, socket}
   end
 
   def handle_info(:after_join, socket) do
     chat_id = get_chat_id(socket)
+    server = get_chat_server(chat_id)
     users = Chat.Server.get_users(chat_id)
     broadcast_from!(socket, "user:joined", %{users: users})
     {:noreply, socket}
@@ -33,6 +48,7 @@ defmodule CodebattleWeb.ChatChannel do
 
   def terminate(_reason, socket) do
     chat_id = get_chat_id(socket)
+    #server = get_chat_server(chat_id)
     {:ok, users} = Chat.Server.leave_chat(chat_id, socket.assigns.current_user)
 
     GameProcess.Server.update_playbook(
@@ -53,8 +69,8 @@ defmodule CodebattleWeb.ChatChannel do
     user = socket.assigns.current_user
     name = get_user_name(user)
     chat_id = get_chat_id(socket)
-
-    Chat.Server.add_msg(chat_id, name, message)
+    server = get_chat_server(chat_id)
+    server.add_msg(chat_id, name, message)
 
     UsersActivityServer.add_event(%{
       event: "new_message_game",

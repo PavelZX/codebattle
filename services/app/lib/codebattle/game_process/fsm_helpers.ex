@@ -5,6 +5,7 @@ defmodule Codebattle.GameProcess.FsmHelpers do
   def get_module(fsm), do: fsm.data.module
   def get_game_id(fsm), do: fsm.data.game_id
   def get_tournament_id(fsm), do: fsm.data.tournament_id
+  def tournament?(fsm), do: fsm.data.tournament_id != nil
   def get_inserted_at(fsm), do: fsm.data.inserted_at
   def get_starts_at(fsm), do: fsm.data.starts_at
   def get_timeout_seconds(fsm), do: fsm.data.timeout_seconds

@@ -16,7 +16,7 @@ defmodule CodebattleWeb.Live.Tournament.View do
     end
 
     tournament = session["tournament"]
-    messages = Tournament.Server.get_messages(tournament.id)
+    messages = Tournament.Server.get_msgs(tournament.id)
 
     Phoenix.PubSub.subscribe(:cb_pubsub, topic_name(tournament))
 
@@ -104,13 +104,13 @@ defmodule CodebattleWeb.Live.Tournament.View do
     tournament = socket.assigns.tournament
     current_user = socket.assigns.current_user
 
-    Tournament.Server.add_message(
+    Tournament.Server.add_msg(
       tournament.id,
       current_user,
       params["message"]["content"]
     )
 
-    messages = Codebattle.Tournament.Server.get_messages(tournament.id)
+    messages = Codebattle.Tournament.Server.get_msgs(tournament.id)
 
     CodebattleWeb.Endpoint.broadcast_from(
       self(),
